@@ -22,3 +22,5 @@ spec:
           value: "${MERCADOPAGO_TOKEN}"
         - name: AWS__Region
           value: "us-east-1"
+        - name: AWS__Service__SQS__ServiceURL
+          value: "${SQS_URL}"
