@@ -9,12 +9,12 @@ public class BudgetApprovedConsumer : IConsumer<BudgetApproved>
 {
     private readonly ILogger<BudgetApprovedConsumer> _logger;
     private readonly IPaymentService _paymentService;
-    private readonly DynamoPaymentRepository _repository;
+    private readonly IPaymentRepository _repository;
 
     public BudgetApprovedConsumer(
         ILogger<BudgetApprovedConsumer> logger, 
         IPaymentService paymentService,
-        DynamoPaymentRepository repository)
+        IPaymentRepository repository)
     {
         _logger = logger;
         _paymentService = paymentService;

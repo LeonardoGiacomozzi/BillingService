@@ -5,7 +5,14 @@ using FiapOficina.BillingService.Api.Models;
 
 namespace FiapOficina.BillingService.Api.Services;
 
-public class DynamoPaymentRepository
+public interface IPaymentRepository
+{
+    Task SaveAsync(Payment payment);
+    Task<Payment?> GetByOrderIdAsync(Guid orderId);
+    Task<Payment?> GetByPaymentIdAsync(string paymentId);
+}
+
+public class DynamoPaymentRepository : IPaymentRepository
 {
     private readonly DynamoDBContext _context;
     private readonly IAmazonDynamoDB _dynamoDb;
@@ -16,12 +23,12 @@ public class DynamoPaymentRepository
         _context = new DynamoDBContext(dynamoDb);
     }
 
-    public async Task SaveAsync(Payment payment)
+    public virtual async Task SaveAsync(Payment payment)
     {
         await _context.SaveAsync(payment);
     }
 
-    public async Task<Payment?> GetByOrderIdAsync(Guid orderId)
+    public virtual async Task<Payment?> GetByOrderIdAsync(Guid orderId)
     {
         return await _context.LoadAsync<Payment>(orderId);
     }

@@ -10,6 +10,7 @@ using Moq;
 using Xunit;
 using System;
 using System.Threading.Tasks;
+using Amazon.DynamoDBv2;
 
 namespace FiapOficina.BillingService.Tests;
 
@@ -17,8 +18,8 @@ public class BillingControllerTests
 {
     private readonly Mock<ILogger<BillingController>> _loggerMock;
     private readonly Mock<IPaymentService> _paymentServiceMock;
-    private readonly Mock<IAmazon.DynamoDBv2.IAmazonDynamoDB> _dynamoDbMock;
-    private readonly DynamoPaymentRepository _repository;
+    private readonly Mock<IAmazonDynamoDB> _dynamoDbMock;
+    private readonly Mock<IPaymentRepository> _repositoryMock;
     private readonly Mock<IBus> _busMock;
     private readonly BillingController _controller;
 
@@ -26,10 +27,9 @@ public class BillingControllerTests
     {
         _loggerMock = new Mock<ILogger<BillingController>>();
         _paymentServiceMock = new Mock<IPaymentService>();
-        _dynamoDbMock = new Mock<IAmazon.DynamoDBv2.IAmazonDynamoDB>();
-        _repository = new DynamoPaymentRepository(_dynamoDbMock.Object);
+        _repositoryMock = new Mock<IPaymentRepository>();
         _busMock = new Mock<IBus>();
-        _controller = new BillingController(_loggerMock.Object, _paymentServiceMock.Object, _repository, _busMock.Object);
+        _controller = new BillingController(_loggerMock.Object, _paymentServiceMock.Object, _repositoryMock.Object, _busMock.Object);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class BillingControllerTests
     {
         // Arrange
         var orderId = Guid.NewGuid();
-        // O repositório real retornará null se o DynamoDB mockado retornar vazio
+        _repositoryMock.Setup(r => r.GetByOrderIdAsync(orderId)).ReturnsAsync((Payment)null!);
         
         // Act
         var result = await _controller.GetPaymentByOrderId(orderId);
