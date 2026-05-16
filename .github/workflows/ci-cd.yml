@@ -18,7 +18,7 @@ jobs:
           dotnet-version: 9.0.x
       
       - name: Restore
-        run: dotnet restore BillingService/FiapOficina.BillingService/src/FiapOficina.BillingService.Api/FiapOficina.BillingService.Api.csproj
+        run: dotnet restore FiapOficina.BillingService/src/FiapOficina.BillingService.Api/FiapOficina.BillingService.Api.csproj
 
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
@@ -32,10 +32,10 @@ jobs:
             /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml"
 
       - name: Build
-        run: dotnet build BillingService/FiapOficina.BillingService/src/FiapOficina.BillingService.Api/FiapOficina.BillingService.Api.csproj --configuration Release --no-restore
+        run: dotnet build FiapOficina.BillingService/src/FiapOficina.BillingService.Api/FiapOficina.BillingService.Api.csproj --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test BillingService/FiapOficina.BillingService/tests/FiapOficina.BillingService.Tests/FiapOficina.BillingService.Tests.csproj --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover --results-directory ./TestResults
+        run: dotnet test FiapOficina.BillingService/tests/FiapOficina.BillingService.Tests/FiapOficina.BillingService.Tests.csproj --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=opencover --results-directory ./TestResults
 
       - name: Sonar End
         run: dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
@@ -86,6 +86,6 @@ jobs:
           MERCADOPAGO_TOKEN: ${{ secrets.MERCADOPAGO_TOKEN }}
           SQS_URL: ${{ steps.sqs.outputs.sqs_url }}
         run: |
-          envsubst < BillingService/k8s/deployment.yaml | kubectl apply -f -
-          kubectl apply -f BillingService/k8s/service.yaml
+          envsubst < k8s/deployment.yaml | kubectl apply -f -
+          kubectl apply -f k8s/service.yaml
           kubectl set image deployment/billing-service billing-service=${{ steps.login-ecr.outputs.registry }}/fiap-oficina-billing-service:${{ github.sha }}
