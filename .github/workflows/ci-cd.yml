@@ -25,7 +25,7 @@ jobs:
 
       - name: Sonar Begin
         run: |
-          dotnet-sonarscanner begin /k:"FiapOficina_BillingService" \
+          dotnet-sonarscanner begin /k:"LeonardoGiacomozzi_BillingService" \
             /o:"${{ secrets.SONAR_ORGANIZATION }}" \
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.host.url="https://sonarcloud.io" \
