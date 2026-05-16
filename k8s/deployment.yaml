@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: billing-service
+  template:
+    metadata:
+      labels:
+        app: billing-service
+    spec:
+      containers:
+      - name: billing-service
+        image: fiap-oficina-billing-service:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: MercadoPago__AccessToken
+          value: "${MERCADOPAGO_TOKEN}"
+        - name: AWS__Region
+          value: "us-east-1"

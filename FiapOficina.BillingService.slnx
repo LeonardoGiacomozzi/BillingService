@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/FiapOficina.BillingService/" />
+  <Folder Name="/FiapOficina.BillingService/src/">
+    <Project Path="FiapOficina.BillingService/src/FiapOficina.BillingService.Api/FiapOficina.BillingService.Api.csproj" />
+  </Folder>
+  <Folder Name="/FiapOficina.BillingService/tests/">
+    <Project Path="FiapOficina.BillingService/tests/FiapOficina.BillingService.Tests/FiapOficina.BillingService.Tests.csproj" />
+  </Folder>
+  <Project Path="FiapOficina.Contracts/FiapOficina.Contracts.csproj" />
+  <Project Path="FiapOficina.ServiceDefaults/FiapOficina.ServiceDefaults.csproj" />
+</Solution>
