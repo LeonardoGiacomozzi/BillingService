@@ -67,4 +67,18 @@ public class BillingControllerTests
         var okResult = result.As<OkObjectResult>();
         okResult.StatusCode.Should().Be(200);
     }
+
+    [Fact]
+    public async Task GetByOrderId_ShouldReturnNotFound_WhenPaymentDoesNotExist()
+    {
+        // Arrange
+        var orderId = Guid.NewGuid();
+        // O repositório real retornará null se o DynamoDB mockado retornar vazio
+        
+        // Act
+        var result = await _controller.GetPaymentByOrderId(orderId);
+
+        // Assert
+        result.Should().BeOfType<NotFoundObjectResult>();
+    }
 }
