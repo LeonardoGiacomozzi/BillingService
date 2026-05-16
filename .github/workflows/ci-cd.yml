@@ -3,8 +3,6 @@ name: Billing Service CI/CD
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   build-and-test:
@@ -27,7 +25,11 @@ jobs:
 
       - name: Sonar Begin
         run: |
-          dotnet-sonarscanner begin /k:"FiapOficina_BillingService" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="${{ secrets.SONAR_HOST_URL }}" /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml"
+          dotnet-sonarscanner begin /k:"FiapOficina_BillingService" \
+            /o:"${{ secrets.SONAR_ORGANIZATION }}" \
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml"
 
       - name: Build
         run: dotnet build BillingService/FiapOficina.BillingService/src/FiapOficina.BillingService.Api/FiapOficina.BillingService.Api.csproj --configuration Release --no-restore
@@ -69,9 +71,20 @@ jobs:
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name ${{ vars.CLUSTER_NAME }} --region us-east-1
 
+      - name: Get SQS URL
+        id: sqs
+        run: |
+          SQS_URL=$(aws sqs get-queue-url --queue-name "budget-created-queue" --query "QueueUrl" --output text)
+          if [ -z "$SQS_URL" ] || [ "$SQS_URL" == "None" ]; then
+            echo "ERROR: SQS Queue 'budget-created-queue' not found!"
+            exit 1
+          fi
+          echo "sqs_url=$SQS_URL" >> $GITHUB_OUTPUT
+
       - name: Deploy to EKS
         env:
           MERCADOPAGO_TOKEN: ${{ secrets.MERCADOPAGO_TOKEN }}
+          SQS_URL: ${{ steps.sqs.outputs.sqs_url }}
         run: |
           envsubst < BillingService/k8s/deployment.yaml | kubectl apply -f -
           kubectl apply -f BillingService/k8s/service.yaml
