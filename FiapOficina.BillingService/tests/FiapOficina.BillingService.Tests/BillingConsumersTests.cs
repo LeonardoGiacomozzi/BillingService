@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using FluentAssertions;
 using Xunit;
+using Amazon.DynamoDBv2;
 
 namespace FiapOficina.BillingService.Tests;
 
@@ -14,15 +15,14 @@ public class BillingConsumersTests
 {
     private readonly Mock<ILogger<BudgetApprovedConsumer>> _loggerMock;
     private readonly Mock<IPaymentService> _paymentServiceMock;
-    private readonly Mock<IAmazon.DynamoDBv2.IAmazonDynamoDB> _dynamoDbMock;
-    private readonly DynamoPaymentRepository _repository;
+    private readonly Mock<IAmazonDynamoDB> _dynamoDbMock;
+    private readonly Mock<IPaymentRepository> _repositoryMock;
 
     public BillingConsumersTests()
     {
         _loggerMock = new Mock<ILogger<BudgetApprovedConsumer>>();
         _paymentServiceMock = new Mock<IPaymentService>();
-        _dynamoDbMock = new Mock<IAmazon.DynamoDBv2.IAmazonDynamoDB>();
-        _repository = new DynamoPaymentRepository(_dynamoDbMock.Object);
+        _repositoryMock = new Mock<IPaymentRepository>();
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public class BillingConsumersTests
         // Arrange
         var orderId = Guid.NewGuid();
         var budgetId = Guid.NewGuid();
-        var consumer = new BudgetApprovedConsumer(_loggerMock.Object, _paymentServiceMock.Object, _repository);
+        var consumer = new BudgetApprovedConsumer(_loggerMock.Object, _paymentServiceMock.Object, _repositoryMock.Object);
         
         var contextMock = new Mock<ConsumeContext<BudgetApproved>>();
         contextMock.Setup(c => c.Message).Returns(new BudgetApproved(orderId, budgetId, 500));

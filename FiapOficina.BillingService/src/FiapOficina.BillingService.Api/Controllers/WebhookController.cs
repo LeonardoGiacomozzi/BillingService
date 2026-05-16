@@ -13,13 +13,13 @@ namespace FiapOficina.BillingService.Api.Controllers;
 public class WebhookController : ControllerBase
 {
     private readonly ILogger<WebhookController> _logger;
-    private readonly DynamoPaymentRepository _repository;
+    private readonly IPaymentRepository _repository;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly IMercadoPagoClientWrapper _mercadoPagoClient;
 
     public WebhookController(
         ILogger<WebhookController> logger,
-        DynamoPaymentRepository repository,
+        IPaymentRepository repository,
         IPublishEndpoint publishEndpoint,
         IMercadoPagoClientWrapper mercadoPagoClient)
     {

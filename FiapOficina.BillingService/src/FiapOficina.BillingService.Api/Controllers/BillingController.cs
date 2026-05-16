@@ -12,13 +12,13 @@ public class BillingController : ControllerBase
 {
     private readonly ILogger<BillingController> _logger;
     private readonly IPaymentService _paymentService;
-    private readonly DynamoPaymentRepository _repository;
+    private readonly IPaymentRepository _repository;
     private readonly IBus _bus;
 
     public BillingController(
         ILogger<BillingController> logger,
         IPaymentService paymentService,
-        DynamoPaymentRepository repository,
+        IPaymentRepository repository,
         IBus bus)
     {
         _logger = logger;
