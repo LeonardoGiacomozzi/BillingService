@@ -53,9 +53,12 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer"
     });
     
-    var requirement = new Microsoft.OpenApi.OpenApiSecurityRequirement();
-    requirement.Add(new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", null, null), new List<string>());
-    c.AddSecurityRequirement(_ => requirement);
+    c.AddSecurityRequirement(doc =>
+    {
+        var requirement = new Microsoft.OpenApi.OpenApiSecurityRequirement();
+        requirement.Add(new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", doc, null), new List<string>());
+        return requirement;
+    });
 });
 
 builder.Services.AddScoped<IPaymentService, MercadoPagoService>();
