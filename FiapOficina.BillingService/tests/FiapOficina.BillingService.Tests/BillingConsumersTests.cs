@@ -26,7 +26,7 @@ public class BillingConsumersTests
     }
 
     [Fact]
-    public async Task BudgetApprovedConsumer_ShouldProcessPayment()
+    public async Task BudgetApprovedConsumer_ShouldProcessPayment_WhenPending()
     {
         // Arrange
         var orderId = Guid.NewGuid();
@@ -37,12 +37,51 @@ public class BillingConsumersTests
         contextMock.Setup(c => c.Message).Returns(new BudgetApproved(orderId, budgetId, 500));
         
         _paymentServiceMock.Setup(s => s.CreatePixPaymentAsync(orderId, 500))
-            .ReturnsAsync(new PixPaymentResult { Status = "Pending", PaymentId = "123" });
+            .ReturnsAsync(new PixPaymentResult { Status = "Pending", PaymentId = "123", QrCode = "PIX_QR_CODE" });
 
         // Act
         await consumer.Consume(contextMock.Object);
 
         // Assert
         _paymentServiceMock.Verify(s => s.CreatePixPaymentAsync(orderId, 500), Times.Once);
+        _repositoryMock.Verify(r => r.SaveAsync(It.Is<Payment>(p => p.OrderId == orderId && p.Status == "Pending")), Times.Once);
+    }
+
+    [Fact]
+    public async Task BudgetApprovedConsumer_ShouldPublishPaymentProcessedFailed_WhenPaymentFails()
+    {
+        // Arrange
+        var orderId = Guid.NewGuid();
+        var budgetId = Guid.NewGuid();
+        var consumer = new BudgetApprovedConsumer(_loggerMock.Object, _paymentServiceMock.Object, _repositoryMock.Object);
+        
+        var contextMock = new Mock<ConsumeContext<BudgetApproved>>();
+        contextMock.Setup(c => c.Message).Returns(new BudgetApproved(orderId, budgetId, 500));
+        
+        _paymentServiceMock.Setup(s => s.CreatePixPaymentAsync(orderId, 500))
+            .ReturnsAsync(new PixPaymentResult { Status = "Failed", PaymentId = "123", Message = "Limit Exceeded" });
+
+        // Act
+        await consumer.Consume(contextMock.Object);
+
+        // Assert
+        contextMock.Verify(c => c.Publish(It.Is<PaymentProcessed>(p => p.OrderId == orderId && p.Success == false && p.Message == "Limit Exceeded"), default), Times.Once);
+    }
+
+    [Fact]
+    public async Task OrderOpenedConsumer_ShouldPublishBudgetCreated()
+    {
+        // Arrange
+        var orderId = Guid.NewGuid();
+        var loggerMock = new Mock<ILogger<OrderOpenedConsumer>>();
+        var consumer = new OrderOpenedConsumer(loggerMock.Object);
+        var contextMock = new Mock<ConsumeContext<OrderOpened>>();
+        contextMock.Setup(c => c.Message).Returns(new OrderOpened(orderId, "John", "ABC-1234", 1500));
+
+        // Act
+        await consumer.Consume(contextMock.Object);
+
+        // Assert
+        contextMock.Verify(c => c.Publish(It.Is<BudgetCreated>(b => b.OrderId == orderId && b.TotalAmount == 1500), default), Times.Once);
     }
 }
