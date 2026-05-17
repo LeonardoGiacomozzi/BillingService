@@ -9,6 +9,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 var authEnabled = builder.Configuration.GetValue<bool>("Authentication:Enabled");
 if (authEnabled)
 {
@@ -96,6 +106,8 @@ builder.Services.AddMassTransit(x =>
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
+
+app.UseCors("AllowAll");
 
 app.UseSwagger();
 app.UseSwaggerUI();
