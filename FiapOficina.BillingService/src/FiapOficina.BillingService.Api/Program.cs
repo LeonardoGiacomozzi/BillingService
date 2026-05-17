@@ -109,6 +109,27 @@ app.MapDefaultEndpoints();
 
 app.UseCors("AllowAll");
 
+app.Use(async (context, next) =>
+{
+    var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("--- Diagnostic Request Headers ---");
+    foreach (var header in context.Request.Headers)
+    {
+        if (header.Key.Equals("Authorization", StringComparison.OrdinalIgnoreCase))
+        {
+            var val = header.Value.ToString();
+            var masked = val.Length > 20 ? val.Substring(0, 20) + "..." : val;
+            logger.LogInformation("Header: {Key} = {Value}", header.Key, masked);
+        }
+        else
+        {
+            logger.LogInformation("Header: {Key} = {Value}", header.Key, header.Value.ToString());
+        }
+    }
+    logger.LogInformation("----------------------------------");
+    await next();
+});
+
 app.UseSwagger();
 app.UseSwaggerUI();
 
