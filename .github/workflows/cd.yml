@@ -8,15 +8,15 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@3951f0dfe7a07e2313ec93c75700083e2005cbab # v4.0.1
         with:
           dotnet-version: '10.x'
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -24,7 +24,7 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4ad91bc005b7cd95e6f4ca # v2.0.1
 
       - name: Build and Push Docker Image
         env:
@@ -39,15 +39,12 @@ jobs:
       - name: Update Kubeconfig
         run: aws eks update-kubeconfig --name fiap-oficina-cluster --region us-east-1
 
-      - name: Fetch SQS Info
-        run: |
-          SQS_URL=$(aws sqs get-queue-url --queue-name ServiceOrderQueue --query 'QueueUrl' --output text)
-          echo "SQS_URL=$SQS_URL" >> $GITHUB_ENV
-
       - name: Deploy to EKS
+        env:
+          MERCADOPAGO_TOKEN: ${{ secrets.MERCADOPAGO_TOKEN }}
         run: |
-          sed -i "s|SQS_URL_VALUE|$SQS_URL|g" k8s/deployment.yml
-          sed -i "s|MERCADOPAGO_TOKEN_VALUE|${{ secrets.MERCADOPAGO_TOKEN }}|g" k8s/deployment.yml
-          kubectl apply -f k8s/deployment.yml
-          kubectl apply -f k8s/service.yml
+          sed -i "s|\${MERCADOPAGO_TOKEN}|$MERCADOPAGO_TOKEN|g" k8s/deployment.yaml
+          sed -i "s|\${SQS_URL}||g" k8s/deployment.yaml
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
           kubectl rollout restart deployment billing-service

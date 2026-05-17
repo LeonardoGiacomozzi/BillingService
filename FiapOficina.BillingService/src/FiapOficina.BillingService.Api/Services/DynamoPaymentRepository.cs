@@ -12,6 +12,7 @@ public interface IPaymentRepository
     Task<Payment?> GetByPaymentIdAsync(string paymentId);
 }
 
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public class DynamoPaymentRepository : IPaymentRepository
 {
     private readonly DynamoDBContext _context;

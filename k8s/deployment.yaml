@@ -12,9 +12,17 @@ spec:
       labels:
         app: billing-service
     spec:
+      automountServiceAccountToken: false
       containers:
       - name: billing-service
         image: fiap-oficina-billing-service:latest
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
         ports:
         - containerPort: 8080
         env:
