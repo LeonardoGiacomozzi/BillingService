@@ -5,11 +5,13 @@ using MassTransit;
 using MercadoPago.Client.Payment;
 using MercadoPago.Resource.Payment;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FiapOficina.BillingService.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[AllowAnonymous]
 public class WebhookController : ControllerBase
 {
     private readonly ILogger<WebhookController> _logger;
