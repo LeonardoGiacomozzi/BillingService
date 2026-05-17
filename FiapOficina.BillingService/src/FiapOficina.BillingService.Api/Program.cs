@@ -73,7 +73,7 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddScoped<IPaymentService, MercadoPagoService>();
 builder.Services.AddAWSService<Amazon.DynamoDBv2.IAmazonDynamoDB>();
-builder.Services.AddScoped<DynamoPaymentRepository>();
+builder.Services.AddScoped<IPaymentRepository, DynamoPaymentRepository>();
 builder.Services.AddSingleton<IMercadoPagoClientWrapper, MercadoPagoClientWrapper>();
 
 var accessToken = builder.Configuration["MercadoPago:AccessToken"];
