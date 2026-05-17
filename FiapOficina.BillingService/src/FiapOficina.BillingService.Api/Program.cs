@@ -9,7 +9,37 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-builder.Services.AddControllers();
+var authEnabled = builder.Configuration.GetValue<bool>("Authentication:Enabled");
+if (authEnabled)
+{
+    var jwtKey = builder.Configuration["JWT_KEY"] ?? throw new InvalidOperationException("JWT_KEY is not configured.");
+    var jwtIssuer = builder.Configuration["JWT_ISSUER"] ?? "fiap-oficina-auth";
+    var jwtAudience = builder.Configuration["JWT_AUDIENCE"] ?? "fiap-oficina-services";
+
+    builder.Services.AddAuthentication("Bearer")
+        .AddJwtBearer("Bearer", options =>
+        {
+            options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = jwtIssuer,
+                ValidateAudience = true,
+                ValidAudience = jwtAudience,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtKey))
+            };
+        });
+    builder.Services.AddAuthorization();
+}
+
+builder.Services.AddControllers(options =>
+{
+    if (authEnabled)
+    {
+        options.Filters.Add(new Microsoft.AspNetCore.Mvc.Authorization.AuthorizeFilter());
+    }
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -53,7 +83,17 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-app.UseAuthorization();
+
+if (authEnabled)
+{
+    app.UseAuthentication();
+    app.UseAuthorization();
+}
+else
+{
+    app.UseAuthorization();
+}
+
 app.MapControllers();
 
 app.Run();

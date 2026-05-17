@@ -42,9 +42,16 @@ jobs:
       - name: Deploy to EKS
         env:
           MERCADOPAGO_TOKEN: ${{ secrets.MERCADOPAGO_TOKEN }}
+          JWT_KEY: ${{ secrets.JWT_KEY }}
+          JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+          JWT_AUDIENCE: ${{ secrets.JWT_AUDIENCE }}
         run: |
           sed -i "s|\${MERCADOPAGO_TOKEN}|$MERCADOPAGO_TOKEN|g" k8s/deployment.yaml
           sed -i "s|\${SQS_URL}||g" k8s/deployment.yaml
+          sed -i "s|\${JWT_KEY}|$JWT_KEY|g" k8s/deployment.yaml
+          sed -i "s|\${JWT_ISSUER}|$JWT_ISSUER|g" k8s/deployment.yaml
+          sed -i "s|\${JWT_AUDIENCE}|$JWT_AUDIENCE|g" k8s/deployment.yaml
+          sed -i "s|image: fiap-oficina-billing-service:latest|image: ${{ steps.login-ecr.outputs.registry }}/fiap-oficina-billing-service:latest|g" k8s/deployment.yaml
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
           kubectl rollout restart deployment billing-service
