@@ -45,6 +45,7 @@ jobs:
         run: |
           sed -i "s|\${MERCADOPAGO_TOKEN}|$MERCADOPAGO_TOKEN|g" k8s/deployment.yaml
           sed -i "s|\${SQS_URL}||g" k8s/deployment.yaml
+          sed -i "s|image: fiap-oficina-billing-service:latest|image: ${{ steps.login-ecr.outputs.registry }}/fiap-oficina-billing-service:latest|g" k8s/deployment.yaml
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
           kubectl rollout restart deployment billing-service
