@@ -41,7 +41,22 @@ builder.Services.AddControllers(options =>
     }
 });
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo { Title = "BillingService API", Version = "v1" });
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = Microsoft.OpenApi.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    
+    var requirement = new Microsoft.OpenApi.OpenApiSecurityRequirement();
+    requirement.Add(new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", null, null), new List<string>());
+    c.AddSecurityRequirement(_ => requirement);
+});
 
 builder.Services.AddScoped<IPaymentService, MercadoPagoService>();
 builder.Services.AddAWSService<Amazon.DynamoDBv2.IAmazonDynamoDB>();
