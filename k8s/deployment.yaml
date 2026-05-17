@@ -32,3 +32,11 @@ spec:
           value: "us-east-1"
         - name: AWS__Service__SQS__ServiceURL
           value: "${SQS_URL}"
+        - name: Authentication__Enabled
+          value: "true"
+        - name: JWT_KEY
+          value: "${JWT_KEY}"
+        - name: JWT_ISSUER
+          value: "${JWT_ISSUER}"
+        - name: JWT_AUDIENCE
+          value: "${JWT_AUDIENCE}"
