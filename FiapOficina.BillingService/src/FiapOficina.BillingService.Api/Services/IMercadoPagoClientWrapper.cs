@@ -14,8 +14,7 @@ public interface IMercadoPagoClientWrapper
 public class MercadoPagoClientWrapper : IMercadoPagoClientWrapper
 {
     private readonly PaymentClient _client;
-    private static readonly ConcurrentDictionary<long, string> _mockPayments = new();
-    private static long _lastPaymentId = 1234567890;
+    private static readonly ConcurrentDictionary<long, (string OrderId, decimal Amount)> _mockPayments = new();
 
     public MercadoPagoClientWrapper()
     {
@@ -32,7 +31,7 @@ public class MercadoPagoClientWrapper : IMercadoPagoClientWrapper
                 var realPayment = await _client.CreateAsync(request, requestOptions, cancellationToken);
                 if (realPayment != null && realPayment.Id.HasValue)
                 {
-                    _mockPayments[realPayment.Id.Value] = request.ExternalReference;
+                    _mockPayments[realPayment.Id.Value] = (request.ExternalReference, request.TransactionAmount ?? 0m);
                     return realPayment;
                 }
             }
@@ -43,15 +42,19 @@ public class MercadoPagoClientWrapper : IMercadoPagoClientWrapper
         }
 
         // Fallback: Simulador de produção acadêmica (Mock)
-        var paymentId = System.Threading.Interlocked.Increment(ref _lastPaymentId);
+        var random = new Random();
+        var paymentId = (long)(random.NextDouble() * 9000000000L + 1000000000L); // Random 10-digit ID to prevent collision
         var orderId = request.ExternalReference ?? Guid.NewGuid().ToString();
-        _mockPayments[paymentId] = orderId;
+        var amount = request.TransactionAmount ?? 0m;
+        
+        _mockPayments[paymentId] = (orderId, amount);
 
         var mockPayment = new Payment
         {
             Id = paymentId,
             Status = "pending",
             ExternalReference = orderId,
+            TransactionAmount = amount,
             PointOfInteraction = new PaymentPointOfInteraction
             {
                 TransactionData = new PaymentTransactionData
@@ -85,7 +88,10 @@ public class MercadoPagoClientWrapper : IMercadoPagoClientWrapper
         }
 
         // Tenta obter a ordem mapeada para o ID de pagamento fornecido
-        _mockPayments.TryGetValue(id, out var orderId);
+        _mockPayments.TryGetValue(id, out var paymentInfo);
+        
+        var orderId = paymentInfo.OrderId;
+        var amount = paymentInfo.Amount;
         
         if (string.IsNullOrEmpty(orderId))
         {
@@ -93,11 +99,13 @@ public class MercadoPagoClientWrapper : IMercadoPagoClientWrapper
             {
                 var pair = _mockPayments.ToArray()[0];
                 id = pair.Key;
-                orderId = pair.Value;
+                orderId = pair.Value.OrderId;
+                amount = pair.Value.Amount;
             }
             else
             {
                 orderId = Guid.NewGuid().ToString(); // Fallback absoluto
+                amount = 100.00m;
             }
         }
 
@@ -106,6 +114,7 @@ public class MercadoPagoClientWrapper : IMercadoPagoClientWrapper
             Id = id,
             Status = "approved",
             ExternalReference = orderId,
+            TransactionAmount = amount,
             PointOfInteraction = new PaymentPointOfInteraction
             {
                 TransactionData = new PaymentTransactionData
