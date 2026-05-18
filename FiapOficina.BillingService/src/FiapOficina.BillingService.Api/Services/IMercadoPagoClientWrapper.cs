@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Text.Json;
 using MercadoPago.Client;
 using MercadoPago.Client.Payment;
 using MercadoPago.Resource.Payment;
@@ -48,22 +47,22 @@ public class MercadoPagoClientWrapper : IMercadoPagoClientWrapper
         var orderId = request.ExternalReference ?? Guid.NewGuid().ToString();
         _mockPayments[paymentId] = orderId;
 
-        var json = $$"""
+        var mockPayment = new Payment
         {
-            "id": {{paymentId}},
-            "status": "pending",
-            "external_reference": "{{orderId}}",
-            "point_of_interaction": {
-                "transaction_data": {
-                    "qr_code": "00020101021226870014br.gov.bcb.pix2565pix-qr.mercadopago.com/emv/v2/5c0d2968-3011-4f11-9252-97b7cb27376c5204000053039865802BR5925Cliente Oficina6009Sao Paulo62070503***63041A2D",
-                    "qr_code_base64": "iVBORw0KGgoAAAANS..."
+            Id = paymentId,
+            Status = "pending",
+            ExternalReference = orderId,
+            PointOfInteraction = new PaymentPointOfInteraction
+            {
+                TransactionData = new PaymentTransactionData
+                {
+                    QrCode = "00020101021226870014br.gov.bcb.pix2565pix-qr.mercadopago.com/emv/v2/5c0d2968-3011-4f11-9252-97b7cb27376c5204000053039865802BR5925Cliente Oficina6009Sao Paulo62070503***63041A2D",
+                    QrCodeBase64 = "iVBORw0KGgoAAAANS..."
                 }
             }
-        }
-        """;
+        };
 
-        var mockPayment = JsonSerializer.Deserialize<Payment>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        return mockPayment ?? new Payment();
+        return mockPayment;
     }
 
     public async Task<Payment> GetAsync(long id, RequestOptions requestOptions = null, CancellationToken cancellationToken = default)
@@ -73,7 +72,11 @@ public class MercadoPagoClientWrapper : IMercadoPagoClientWrapper
             if (!string.IsNullOrEmpty(MercadoPago.Config.MercadoPagoConfig.AccessToken) && 
                 !MercadoPago.Config.MercadoPagoConfig.AccessToken.Contains("YOUR_ACCESS_TOKEN"))
             {
-                return await _client.GetAsync(id, requestOptions, cancellationToken);
+                var realPayment = await _client.GetAsync(id, requestOptions, cancellationToken);
+                if (realPayment != null)
+                {
+                    return realPayment;
+                }
             }
         }
         catch (Exception ex)
@@ -98,21 +101,21 @@ public class MercadoPagoClientWrapper : IMercadoPagoClientWrapper
             }
         }
 
-        var json = $$"""
+        var mockPayment = new Payment
         {
-            "id": {{id}},
-            "status": "approved",
-            "external_reference": "{{orderId}}",
-            "point_of_interaction": {
-                "transaction_data": {
-                    "qr_code": "00020101021226870014br.gov.bcb.pix2565pix-qr.mercadopago.com/emv/v2/5c0d2968-3011-4f11-9252-97b7cb27376c5204000053039865802BR5925Cliente Oficina6009Sao Paulo62070503***63041A2D",
-                    "qr_code_base64": "iVBORw0KGgoAAAANS..."
+            Id = id,
+            Status = "approved",
+            ExternalReference = orderId,
+            PointOfInteraction = new PaymentPointOfInteraction
+            {
+                TransactionData = new PaymentTransactionData
+                {
+                    QrCode = "00020101021226870014br.gov.bcb.pix2565pix-qr.mercadopago.com/emv/v2/5c0d2968-3011-4f11-9252-97b7cb27376c5204000053039865802BR5925Cliente Oficina6009Sao Paulo62070503***63041A2D",
+                    QrCodeBase64 = "iVBORw0KGgoAAAANS..."
                 }
             }
-        }
-        """;
+        };
 
-        var mockPayment = JsonSerializer.Deserialize<Payment>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-        return mockPayment ?? new Payment();
+        return mockPayment;
     }
 }
