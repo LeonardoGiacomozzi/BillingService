@@ -32,7 +32,7 @@ public class MercadoPagoService : IPaymentService
                 ExternalReference = orderId.ToString(),
                 Payer = new PaymentPayerRequest
                 {
-                    Email = "cliente.oficina@teste.com", // Dummy email as required by PIX
+                    Email = "test_user_6512781406684542735@testuser.com", // Valid Mercado Pago Sandbox Test Buyer
                     FirstName = "Cliente",
                     LastName = "Oficina",
                     Identification = new IdentificationRequest
