@@ -11,6 +11,7 @@ public interface IMercadoPagoClientWrapper
     Task<Payment> GetAsync(long id, RequestOptions requestOptions = null, CancellationToken cancellationToken = default);
 }
 
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public class MercadoPagoClientWrapper : IMercadoPagoClientWrapper
 {
     private readonly PaymentClient _client;
